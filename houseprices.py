@@ -8,6 +8,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
+import xgboost as xgb
 
 from sklearn.model_selection import GridSearchCV
 
@@ -62,11 +63,14 @@ val_predictionsRF = housePriceModelRF.predict(X_val)
 print(mean_absolute_error(y_val, val_predictionsRF))
 
 # # XGBoost
-xgbModel = XGBRegressor()
-parameters = {'n_estimators':[500, 1000],
-              'learning_rate':[0.01, 0.1]}
 
-xgbGrid = GridSearchCV(xgbModel, param_grid=parameters)
+ind_params = {'seed':0,
+            'subsample': 0.8, 'colsample_bytree': 0.8}
+cv_params = {'learning_rate': [0.01, 0.1], 'n_estimators': [1000, 2000]}
+
+xgbModel = XGBRegressor(**ind_params)
+
+xgbGrid = GridSearchCV(xgbModel, param_grid=cv_params)
 xgbGrid.fit(X_train, y_train)
 
 n_estimatorsXGB_value = xgbGrid.best_estimator_.n_estimators
@@ -78,10 +82,7 @@ print("best learning_rate: %f" % (learning_rateXGB_value))
 housePriceModelXGB = XGBRegressor(n_estimators=n_estimatorsXGB_value,
                                   learning_rate=learning_rateXGB_value)
 
-# housePriceModelXGB.fit(X_train, y_train, early_stopping_rounds=1,
-#              eval_set=[(X_val, y_val)], verbose=False)
-
-housePriceModelXGB.fit(X_train, y_train,
+housePriceModelXGB.fit(X_train, y_train, early_stopping_rounds=5,
              eval_set=[(X_val, y_val)], verbose=False)
 
 predictions = housePriceModelXGB.predict(X_val)

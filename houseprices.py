@@ -38,6 +38,7 @@ n_estimatorsList = [2, 5, 8, 10, 15, 20]
 grid = GridSearchCV(estimator=model, param_grid=dict(n_estimators=n_estimatorsList,
                     min_samples_split=min_samples_splitList,
                     max_leaf_nodes=max_leaf_nodeList))
+
 grid.fit(X_train, y_train)
 print(grid)
 print(grid.best_score_)
@@ -61,8 +62,27 @@ val_predictionsRF = housePriceModelRF.predict(X_val)
 print(mean_absolute_error(y_val, val_predictionsRF))
 
 # # XGBoost
-# housePriceModelXGB = XGBRegressor(n_estimators=1000, learning_rate=0.01)
+xgbModel = XGBRegressor()
+parameters = {'n_estimators':[500, 1000],
+              'learning_rate':[0.01, 0.1]}
+
+xgbGrid = GridSearchCV(xgbModel, param_grid=parameters)
+xgbGrid.fit(X_train, y_train)
+
+n_estimatorsXGB_value = xgbGrid.best_estimator_.n_estimators
+learning_rateXGB_value = xgbGrid.best_estimator_.learning_rate
+
+print("Best n_estimators: %d" % (n_estimatorsXGB_value))
+print("best learning_rate: %f" % (learning_rateXGB_value))
+
+housePriceModelXGB = XGBRegressor(n_estimators=n_estimatorsXGB_value,
+                                  learning_rate=learning_rateXGB_value)
+
 # housePriceModelXGB.fit(X_train, y_train, early_stopping_rounds=1,
 #              eval_set=[(X_val, y_val)], verbose=False)
-# predictions = housePriceModelXGB.predict(X_val)
-# print(mean_absolute_error(y_val, predictions))
+
+housePriceModelXGB.fit(X_train, y_train,
+             eval_set=[(X_val, y_val)], verbose=False)
+
+predictions = housePriceModelXGB.predict(X_val)
+print(mean_absolute_error(y_val, predictions))

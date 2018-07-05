@@ -133,3 +133,5 @@ testPredictionsDF = pd.DataFrame(testPredictions, columns=['SalePrice'])
 result = pd.concat([IdDF, testPredictionsDF], axis=1, sort=False)
 
 result.to_csv('submission.csv', index=False)
+
+# Current result: 0.20714, place 4312, top 88%
